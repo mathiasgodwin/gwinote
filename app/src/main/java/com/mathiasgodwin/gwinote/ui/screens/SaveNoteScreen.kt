@@ -1,5 +1,6 @@
 package com.mathiasgodwin.gwinote.ui.screens
 
+import SleekTextField
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -15,20 +17,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material3.Button
-import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -50,33 +49,30 @@ import com.mathiasgodwin.gwinote.ui.theme.GwinoteTheme
 fun SaveNoteScreen(navController: NavHostController? = null) {
     val colorPickerSheetState = rememberModalBottomSheetState()
     var showColorPicker: Boolean by remember { mutableStateOf(false) }
+    var selectedColor: ColorData? by remember { mutableStateOf(null) }
+
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
-                    Text("Save note")
+
+                    Text(
+                        "Save Note",
+                    )
+
                 },
                 navigationIcon = {
                     IconButton(onClick = {
                         navController?.popBackStack()
                     }) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
+                            Icons.AutoMirrored.Filled.ArrowBackIos,
                             contentDescription = "Back"
                         )
                     }
                 },
-                actions = {
-                    IconButton(onClick = {
-                        showColorPicker = true
-                    }) {
-                        Icon(
-                            Icons.Default.ShoppingCart,
-                            contentDescription = "Color picker"
-                        )
-                    }
-                },
-            )
+
+                )
         },
 
         ) { it ->
@@ -85,38 +81,72 @@ fun SaveNoteScreen(navController: NavHostController? = null) {
                 sheetState = colorPickerSheetState,
                 onDismissRequest = { showColorPicker = false },
             ) {
-                ColorItemListView()
+                ColorItemListView(onSelectColor = {
+                    selectedColor = it
+                    showColorPicker = false
+                })
             }
+        }
+        Column(
+            modifier = Modifier
+                .padding(it)
+                .padding(20.dp)
+        ) {
+            NewNoteForm(selectedColor = selectedColor, onPickColor = {
+                showColorPicker = true
+            })
         }
     }
 }
 
 @Composable
-private fun NewNoteForm(modifier: Modifier = Modifier) {
-    val noteTitle = remember { mutableStateOf("") }
-    val noteContent = remember { mutableStateOf("") }
+private fun NewNoteForm(
+    modifier: Modifier = Modifier,
+    selectedColor: ColorData? = null,
+    onPickColor: () -> Unit = {},
+) {
+    val noteTitleState = remember { TextFieldState() }
+    val noteContentState = remember { TextFieldState() }
+
 
     Column {
+
+
         Text("Note Title")
         Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = noteTitle.value,
-            label = { Text("Enter note title") },
-            onValueChange = { noteTitle.value = it },
+        SleekTextField(
+            state = noteTitleState,
+            placeholder = "Enter note title",
+            modifier = Modifier.fillMaxWidth(),
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text("Note Content")
         Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = noteContent.value,
-            label = { Text("Enter note content") },
-            onValueChange = { noteContent.value = it }
+        SleekTextField(
+            state = noteContentState,
+            placeholder = "Enter note content",
+            minLines = 7,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("Note Color")
+        Spacer(modifier = Modifier.height(8.dp))
+
+        ColorItem(
+            colorData = selectedColor ?: ColorDataList[2],
+            onColorSelect = {
+                onPickColor.invoke()
+            },
+            modifier = Modifier.clickable(onClick = { onPickColor.invoke() })
         )
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        Button (
-            modifier = Modifier.align(Alignment.CenterHorizontally),
+        Button(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .align(Alignment.CenterHorizontally),
             onClick = {}
         ) {
             Text("Save Note")
@@ -139,7 +169,7 @@ fun SaveNoteScreenPreview() {
 }
 
 @Composable
-private fun ColorItemListView() {
+private fun ColorItemListView(onSelectColor: (ColorData) -> Unit = {}) {
     Column(
         modifier = Modifier.padding(16.dp)
     ) {
@@ -147,7 +177,7 @@ private fun ColorItemListView() {
         Spacer(modifier = Modifier.height(8.dp))
         LazyColumn {
             items(ColorDataList) { colorData ->
-                ColorItem(colorData)
+                ColorItem(colorData, onColorSelect = onSelectColor)
             }
         }
     }
@@ -161,7 +191,8 @@ fun ColorItemListViewPreview() {
 
 @Composable
 private fun ColorItem(
-    colorData: ColorData, onColorSelect: (ColorData) -> Unit = {}
+    colorData: ColorData, onColorSelect: (ColorData) -> Unit = {},
+    modifier: Modifier = Modifier,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,

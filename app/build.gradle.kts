@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp") version "2.2.0-2.0.2"
 }
 
 android {
@@ -42,6 +43,7 @@ android {
 dependencies {
 
     val navigationVersion = "2.9.3"
+    val roomVersion = "2.7.2"
 
     // Jetpack Compose integration
     implementation(libs.androidx.navigation.compose)
@@ -53,6 +55,23 @@ dependencies {
     // Feature module support for Fragments
     implementation(libs.androidx.navigation.dynamic.features.fragment)
 
+    // Room components
+    implementation(libs.androidx.room.runtime)
+
+    // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
+    // See Add the KSP plugin to your project
+    ksp(libs.androidx.room.compiler)
+    implementation (libs.androidx.room.ktx) // coroutines support
+
+    // Lifecycle + ViewModel
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+
+    // Icon lib
+    implementation(libs.androidx.material.icons.extended)
+
+    // Compose integration with ViewModel
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     // Testing Navigation
     androidTestImplementation(libs.androidx.navigation.testing)
 

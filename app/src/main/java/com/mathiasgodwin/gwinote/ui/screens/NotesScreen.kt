@@ -22,6 +22,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.mathiasgodwin.gwinote.navigations.Screen
 import com.mathiasgodwin.gwinote.ui.components.AppDrawer
@@ -30,8 +31,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotesScreen() {
-    val navController = rememberNavController()
+fun NotesScreen(navController: NavHostController) {
     val drawerState = rememberDrawerState(Closed)
     val scope = rememberCoroutineScope()
 
@@ -68,6 +68,7 @@ fun NotesScreen() {
         val colorScheme = MaterialTheme.colorScheme
 
         Scaffold(
+
             topBar = {
                 TopAppBar(
                     title = { Text("Gwinote") },

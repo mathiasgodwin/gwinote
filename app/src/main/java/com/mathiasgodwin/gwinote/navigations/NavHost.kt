@@ -21,7 +21,7 @@ fun AppNavHost(
         modifier = modifier,
     ) {
         composable(Screen.Notes.route) {
-            NotesScreen()
+            NotesScreen(navController = navController)
         }
         composable(Screen.Trash.route) {
             TrashScreen()
@@ -33,3 +33,4 @@ fun AppNavHost(
         }
     }
 }
+
