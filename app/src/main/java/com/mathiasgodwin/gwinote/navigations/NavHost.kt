@@ -8,9 +8,11 @@ import androidx.navigation.compose.composable
 import com.mathiasgodwin.gwinote.ui.screens.NotesScreen
 import com.mathiasgodwin.gwinote.ui.screens.SaveNoteScreen
 import com.mathiasgodwin.gwinote.ui.screens.TrashScreen
+import com.mathiasgodwin.gwinote.viewmodel.NotesViewModel
 
 @Composable
 fun AppNavHost(
+    notesViewModel: NotesViewModel,
     navController: NavHostController,
     startDestination: String = Screen.Notes.route,
     modifier: Modifier
@@ -21,14 +23,15 @@ fun AppNavHost(
         modifier = modifier,
     ) {
         composable(Screen.Notes.route) {
-            NotesScreen(navController = navController)
+            NotesScreen(navController = navController, notesViewModel = notesViewModel)
         }
         composable(Screen.Trash.route) {
             TrashScreen()
         }
-        composable (Screen.SaveNote.route){
+        composable(Screen.SaveNote.route) {
             SaveNoteScreen(
-                navController = navController
+                navController = navController,
+                notesViewModel = notesViewModel,
             )
         }
     }

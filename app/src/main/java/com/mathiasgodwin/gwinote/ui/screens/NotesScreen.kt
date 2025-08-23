@@ -1,8 +1,10 @@
 package com.mathiasgodwin.gwinote.ui.screens
 
+import Note
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Menu
@@ -19,52 +21,33 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.mathiasgodwin.gwinote.navigations.Screen
 import com.mathiasgodwin.gwinote.ui.components.AppDrawer
+import com.mathiasgodwin.gwinote.viewmodel.NotesViewModel
 import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotesScreen(navController: NavHostController) {
+fun NotesScreen(navController: NavHostController? = null, notesViewModel: NotesViewModel) {
     val drawerState = rememberDrawerState(Closed)
     val scope = rememberCoroutineScope()
 
+    val notes by notesViewModel.notes.collectAsState()
+
     // Track current route
     val currentRoute = navController
-        .currentBackStackEntryFlow
-        .collectAsState(initial = navController.currentBackStackEntry)
-        .value?.destination?.route ?: Screen.Notes.route
+        ?.currentBackStackEntryFlow
+        ?.collectAsState(initial = navController?.currentBackStackEntry)
+        ?.value?.destination?.route ?: Screen.Notes.route
 
 
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        scrimColor = DrawerDefaults.modalContainerColor,
-        drawerContent = {
-            AppDrawer(
-                currentRoute = currentRoute,
-                modifier = Modifier.systemBarsPadding(),
-                navigateToHome = {
-                    navController.navigate(Screen.Notes.route) {
-                        popUpTo(Screen.Notes.route) { inclusive = true }
-                    }
-                },
-                navigateToTrash = {
-                    navController.navigate(Screen.Trash.route) {
-                        popUpTo(Screen.Notes.route)
-                    }
-                },
-                closeDrawer = { scope.launch { drawerState.close() } }
-            )
-
-        }
-    ) {
         val colorScheme = MaterialTheme.colorScheme
 
         Scaffold(
@@ -74,7 +57,7 @@ fun NotesScreen(navController: NavHostController) {
                     title = { Text("Gwinote") },
                     actions = {
                         IconButton(onClick = {
-                            navController.navigate(Screen.SaveNote.route)
+                            navController?.navigate(Screen.SaveNote.route)
                         }) {
                             Icon(
                                 imageVector = Icons.Default.AddCircle,
@@ -95,12 +78,15 @@ fun NotesScreen(navController: NavHostController) {
 
             }
         ) { paddingValues ->
-            Text(
-                "Notes Screen",
+            LazyColumn(
                 modifier = Modifier
                     .padding(paddingValues)
-                    .wrapContentWidth(align = Alignment.CenterHorizontally)
-            )
+                    .padding(horizontal = 16.dp)
+            ) {
+                items(notes) { item -> Note(
+                    item
+                ) }
+            }
         }
-    }
+//    }
 }

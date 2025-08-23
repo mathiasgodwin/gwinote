@@ -16,8 +16,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material3.Button
@@ -41,15 +43,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import androidx.navigation.NavHostController
+import com.mathiasgodwin.gwinote.data.local.entity.ColorData
+import com.mathiasgodwin.gwinote.data.local.entity.NoteEntity
 import com.mathiasgodwin.gwinote.ui.theme.GwinoteTheme
+import com.mathiasgodwin.gwinote.viewmodel.NotesViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SaveNoteScreen(navController: NavHostController? = null) {
+fun SaveNoteScreen(
+    navController: NavHostController? = null,
+    notesViewModel: NotesViewModel? = null
+) {
     val colorPickerSheetState = rememberModalBottomSheetState()
     var showColorPicker: Boolean by remember { mutableStateOf(false) }
     var selectedColor: ColorData? by remember { mutableStateOf(null) }
+    val scrollState = rememberScrollState()
 
     Scaffold(
         topBar = {
@@ -88,13 +97,18 @@ fun SaveNoteScreen(navController: NavHostController? = null) {
             }
         }
         Column(
-            modifier = Modifier
+            modifier = Modifier.
+            verticalScroll(scrollState)
                 .padding(it)
                 .padding(20.dp)
         ) {
-            NewNoteForm(selectedColor = selectedColor, onPickColor = {
-                showColorPicker = true
-            })
+            NewNoteForm(
+                selectedColor = selectedColor, onPickColor = {
+                    showColorPicker = true
+                },
+                newNotesViewModel = notesViewModel,
+                navController = navController
+            )
         }
     }
 }
@@ -104,6 +118,8 @@ private fun NewNoteForm(
     modifier: Modifier = Modifier,
     selectedColor: ColorData? = null,
     onPickColor: () -> Unit = {},
+    newNotesViewModel: NotesViewModel? = null,
+    navController: NavHostController? = null,
 ) {
     val noteTitleState = remember { TextFieldState() }
     val noteContentState = remember { TextFieldState() }
@@ -147,7 +163,17 @@ private fun NewNoteForm(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .align(Alignment.CenterHorizontally),
-            onClick = {}
+            enabled = noteTitleState.text.isNotBlank() && noteContentState.text.isNotBlank(),
+            onClick = {
+                newNotesViewModel?.addNote(
+                    NoteEntity(
+                        title = noteTitleState.text.toString(),
+                        content = noteContentState.text.toString(),
+                        color = selectedColor ?: ColorDataList[2]
+                    )
+                )
+                navController?.popBackStack()
+            }
         ) {
             Text("Save Note")
         }
@@ -228,7 +254,6 @@ fun ColorItemPreview() {
     ColorItem(colorData = ColorDataList[2])
 }
 
-private data class ColorData(val id: Long, val hex: String, val name: String)
 
 private val ColorDataList = listOf<ColorData>(
     ColorData(1, "#FFFFFF", "White"),

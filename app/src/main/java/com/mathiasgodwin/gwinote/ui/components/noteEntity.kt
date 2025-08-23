@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,55 +30,64 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.toColorInt
+import com.mathiasgodwin.gwinote.data.local.entity.NoteEntity
 
 @Composable
-fun Note() {
+fun Note(
+ note: NoteEntity? = null
+) {
     val backgroundShape: Shape = RoundedCornerShape(4.dp);
     val typo = MaterialTheme.typography
     val colorScheme = MaterialTheme.colorScheme
-    Row(
+    Card(
         modifier = Modifier
             .padding(8.dp)
-            .shadow(1.dp, backgroundShape)
-            .fillMaxWidth()
-            .heightIn(min = 64.dp)
-            .background(color = colorScheme.surface, backgroundShape),
-        verticalAlignment = Alignment.CenterVertically,
+            .fillMaxWidth(),
     ) {
-        NoteColor(
-            color = Color.Red,
-            size = 40.dp,
-            border = 1.dp
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Column(
-            horizontalAlignment = Alignment.Start,
+        Row(
+            modifier = Modifier
+                .background(color = colorScheme.surface, backgroundShape),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                "Title",
-                style = typo.bodyMedium.copy(
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 16.sp,
-                    letterSpacing = 0.15.sp,
+            Row(
+                modifier = Modifier.weight(1f)
+            ) {
+                NoteColor(
+                    color = if (note != null) Color(note.color.hex.toColorInt()) else Color.Red,
+                    size = 40.dp,
+                    border = 1.dp
                 )
-            )
-            Text(
-                "Content",
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = typo.bodyMedium.copy(
-                    color = colorScheme.onSurface.copy(alpha = .75f),
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 14.sp,
-                    letterSpacing = .25.sp,
-                ),
+                Spacer(modifier = Modifier.width(8.dp))
+                Column(
+                    horizontalAlignment = Alignment.Start,
+                ) {
+                    Text(
+                        note?.title ?: "Title",
+                        style = typo.bodyMedium.copy(
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 16.sp,
+                            letterSpacing = 0.15.sp,
+                        )
+                    )
+                    Text(
+                        note?.content ?: "Content     @Insert(onConflict = OnConflictStrategy.ABORT) // Default behavior, will throw error if ID exists",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = typo.bodyMedium.copy(
+                            color = colorScheme.onSurface.copy(alpha = .75f),
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 14.sp,
+                            letterSpacing = .25.sp,
+                        ),
+                    )
+                }
+            }
+            Checkbox(
+                checked = false,
+                onCheckedChange = {}
             )
         }
-        Spacer(modifier = Modifier.weight(1f))
-        Checkbox(
-            checked = false,
-            onCheckedChange = {}
-        )
     }
 }
 
