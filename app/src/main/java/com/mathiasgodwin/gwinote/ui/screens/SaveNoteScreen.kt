@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
@@ -32,9 +33,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,28 +50,38 @@ import com.mathiasgodwin.gwinote.data.local.entity.ColorData
 import com.mathiasgodwin.gwinote.data.local.entity.NoteEntity
 import com.mathiasgodwin.gwinote.ui.theme.GwinoteTheme
 import com.mathiasgodwin.gwinote.viewmodel.NotesViewModel
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SaveNoteScreen(
     navController: NavHostController? = null,
-    notesViewModel: NotesViewModel? = null
+    notesViewModel: NotesViewModel? = null,
+    noteId: Int? = null,
 ) {
     val colorPickerSheetState = rememberModalBottomSheetState()
     var showColorPicker: Boolean by remember { mutableStateOf(false) }
     var selectedColor: ColorData? by remember { mutableStateOf(null) }
     val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
+    var noteState: NoteEntity? by remember { mutableStateOf(null) }
 
+    LaunchedEffect(noteId) {
+        coroutineScope.launch {
+            if (noteId != null) {
+                val note = notesViewModel?.getNoteById(noteId)
+                noteState = note
+            }
+        }
+    }
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-
                     Text(
                         "Save Note",
                     )
-
                 },
                 navigationIcon = {
                     IconButton(onClick = {
@@ -97,17 +110,19 @@ fun SaveNoteScreen(
             }
         }
         Column(
-            modifier = Modifier.
-            verticalScroll(scrollState)
+            modifier = Modifier
+                .verticalScroll(scrollState)
                 .padding(it)
                 .padding(20.dp)
         ) {
             NewNoteForm(
-                selectedColor = selectedColor, onPickColor = {
+                selectedColor = noteState?.color ?: selectedColor,
+                onPickColor = {
                     showColorPicker = true
                 },
                 newNotesViewModel = notesViewModel,
-                navController = navController
+                navController = navController,
+                note = noteState
             )
         }
     }
@@ -116,17 +131,20 @@ fun SaveNoteScreen(
 @Composable
 private fun NewNoteForm(
     modifier: Modifier = Modifier,
-    selectedColor: ColorData? = null,
     onPickColor: () -> Unit = {},
     newNotesViewModel: NotesViewModel? = null,
     navController: NavHostController? = null,
+    note: NoteEntity? = null,
+    selectedColor: ColorData? = null,
 ) {
-    val noteTitleState = remember { TextFieldState() }
-    val noteContentState = remember { TextFieldState() }
+    val noteTitleState = remember { TextFieldState(initialText = note?.title ?: "") }
+    val noteContentState = remember { TextFieldState(initialText = note?.content ?: "") }
 
-
+    LaunchedEffect(note) {
+        noteTitleState.setTextAndPlaceCursorAtEnd(note?.title ?: "")
+        noteContentState.setTextAndPlaceCursorAtEnd(note?.content ?: "")
+    }
     Column {
-
 
         Text("Note Title")
         Spacer(modifier = Modifier.height(8.dp))
@@ -165,17 +183,31 @@ private fun NewNoteForm(
                 .align(Alignment.CenterHorizontally),
             enabled = noteTitleState.text.isNotBlank() && noteContentState.text.isNotBlank(),
             onClick = {
-                newNotesViewModel?.addNote(
-                    NoteEntity(
-                        title = noteTitleState.text.toString(),
-                        content = noteContentState.text.toString(),
-                        color = selectedColor ?: ColorDataList[2]
+
+                if (note == null) {
+                    newNotesViewModel?.addNote(
+                        NoteEntity(
+                            title = noteTitleState.text.toString(),
+                            content = noteContentState.text.toString(),
+                            color = selectedColor ?: ColorDataList[2]
+                        )
                     )
-                )
+                } else {
+                    newNotesViewModel?.updateNote(
+                        NoteEntity(
+                            id = note.id,
+                            title = noteTitleState.text.toString(),
+                            content = noteContentState.text.toString(),
+                            color = selectedColor ?: ColorDataList[2]
+                        ))
+                }
                 navController?.popBackStack()
             }
         ) {
-            Text("Save Note")
+            Text(
+                if (note == null) "Save Note" else
+                    "Edit Note"
+            )
         }
     }
 }

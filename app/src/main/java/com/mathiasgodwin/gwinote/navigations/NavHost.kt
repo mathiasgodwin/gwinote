@@ -28,10 +28,11 @@ fun AppNavHost(
         composable(Screen.Trash.route) {
             TrashScreen()
         }
-        composable(Screen.SaveNote.route) {
+        composable(Screen.SaveNote.route + "?noteId={noteId}", ) {
             SaveNoteScreen(
                 navController = navController,
                 notesViewModel = notesViewModel,
+                noteId = it.arguments?.getString("noteId")?.toInt()
             )
         }
     }

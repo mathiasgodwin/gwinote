@@ -45,6 +45,10 @@ class NotesViewModel(
         }
     }
 
+    fun getNoteById(id: Int): NoteEntity? {
+        return notes.value.find { it.id == id }
+    }
+
 }
 
 class NotesViewModelFactory(private val application: Application) : ViewModelProvider.Factory {

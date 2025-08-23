@@ -40,14 +40,6 @@ fun NotesScreen(navController: NavHostController? = null, notesViewModel: NotesV
 
     val notes by notesViewModel.notes.collectAsState()
 
-    // Track current route
-    val currentRoute = navController
-        ?.currentBackStackEntryFlow
-        ?.collectAsState(initial = navController?.currentBackStackEntry)
-        ?.value?.destination?.route ?: Screen.Notes.route
-
-
-
         val colorScheme = MaterialTheme.colorScheme
 
         Scaffold(
@@ -66,16 +58,7 @@ fun NotesScreen(navController: NavHostController? = null, notesViewModel: NotesV
                             )
                         }
                     },
-                    navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(
-                                imageVector = Icons.Default.Menu,
-                                contentDescription = "Menu",
-                            )
-                        }
-                    }
                 )
-
             }
         ) { paddingValues ->
             LazyColumn(
@@ -84,7 +67,10 @@ fun NotesScreen(navController: NavHostController? = null, notesViewModel: NotesV
                     .padding(horizontal = 16.dp)
             ) {
                 items(notes) { item -> Note(
-                    item
+                    item,
+                    onTap = {
+                        navController?.navigate(Screen.SaveNote.route + "?noteId=${item.id}")
+                    }
                 ) }
             }
         }
